@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Розклад 2026 - Актуальний</title>
+    <style>
+        :root { --primary: #1a56db; --bg: #f3f4f6; --card: #ffffff; --accent: #10b981; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1f2937; }
+        .container { max-width: 900px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 25px; padding: 15px; background: var(--card); border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .start-date { font-weight: bold; color: var(--primary); font-size: 1.1em; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .day-card { background: var(--card); border-radius: 10px; padding: 15px; border: 1px solid #e5e7eb; }
+        .day-card.today { border: 2px solid var(--primary); box-shadow: 0 4px 12px rgba(26, 86, 219, 0.15); }
+        .day-title { font-size: 1.1em; font-weight: 700; margin-bottom: 12px; color: #111827; border-bottom: 2px solid #f3f4f6; padding-bottom: 5px; }
+        .lesson { padding: 8px; border-radius: 6px; margin-bottom: 6px; background: #f9fafb; font-size: 0.95em; }
+        .lesson.active { background: #dcfce7; border-left: 4px solid var(--accent); }
+        .time { font-size: 0.8em; color: #6b7280; font-weight: 600; display: block; }
+        .links-container { margin-top: 30px; background: #111827; color: white; padding: 20px; border-radius: 12px; }
+        .link-item { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #374151; }
+        .link-label { font-weight: bold; display: block; color: #9ca3af; margin-bottom: 4px; font-size: 0.9em; }
+        .link-url { color: #60a5fa; text-decoration: none; word-break: break-all; font-size: 0.85em; }
+        .week-type { margin-top: 10px; font-weight: bold; display: inline-block; padding: 4px 12px; border-radius: 15px; background: #e0e7ff; color: #4338ca; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="start-date">Дата початку: 16.03.2026</div>
+        <div id="today-info" style="margin-top:5px; color: #6b7280;"></div>
+        <div id="week-display" class="week-type">Обчислення...</div>
+    </header>
+
+    <div id="schedule-grid" class="grid"></div>
+
+    <div class="links-container">
+        <h3 style="margin:0; border-bottom: 1px solid #374151; padding-bottom: 10px;">🔗 Посилання (слово в слово)</h3>
+        <div id="links-list"></div>
+    </div>
+</div>
+
+<script>
+    const START_DATE = new Date(2026, 2, 16);
+    const timeSlots = [
+        { s: "08:30", e: "09:50" },
+        { s: "10:25", e: "11:45" },
+        { s: "12:20", e: "13:40" },
+        { s: "14:15", e: "15:35" }
+    ];
+
+    const schedule = {
+        week1: {
+            "Понеділок": ["ПЗІР лек", "ПЗІР прак", "англ"],
+            "Вівторок": ["охорона праці прак", "ПЗІР прак", "Деталі машин лек", "Деталі машин прак"],
+            "Середа": ["-", "Підприєм діял лек"],
+            "Четвер": ["охорона праці лек", "Метрологія лек", "Метрологія прак"],
+            "П'ятниця": ["Пром екологія", "Деталі машин прак", "Охорона праці лаб"]
+        },
+        week2: {
+            "Понеділок": ["ПЗІР лек", "ПЗІР прак", "англ"],
+            "Вівторок": ["охорона праці прак", "ПЗІР прак", "Деталі машин лек", "Деталі машин прак"],
+            "Середа": ["Підприєм діял прак"],
+            "Четвер": ["охорона праці лек", "Метрологія лек", "Метрологія лаб"],
+            "П'ятниця": ["Пром екологія", "Деталі машин прак", "Деталі машин лаб", "Пром екологія прак"]
+        }
+    };
+
+    // Оновлений список посилань згідно з останнім фото
+    const linksData = [
+        { name: "ПЗІР", url: "https://us04web.zoom.us/j/9918032525?pwd=Z2Z6Y1E0UmhOVitXOWhQQk51Q1ZqZz09" },
+        { name: "англ", url: "https://us02web.zoom.us/j/8572023145?pwd=R09mdVNqN1Jyb0NDUDFRdVQ1R2hvZz09" },
+        { name: "ох прац прак", url: "https://us02web.zoom.us/j/89289512743?pwd=yOEh5Zf0qoSGmOTHXiUeFxFKBvKhPj.1" },
+        { name: "Дет машин", url: "http://meet.google.com/drr-eksy-vgm" },
+        { name: "підп діял", url: "https://meet.google.com/eig-ohwn-mme?authuser=1" },
+        { name: "ох прац лек", url: "https://us04web.zoom.us/j/72935796822?pwd=mabMZXXAnuyp0aalv3azrKHZ9xR9gL.1" },
+        { name: "метрол", url: "https://meet.google.com/cho-isiv-fzt?authuser=0&hs=179" },
+        { name: "еколог", url: "https://us04web.zoom.us/j/75423867734?pwd=74dpvpaiuHUPkaeg0xwSMUoV5es3.1" },
+        { name: "ох прац лаб", url: "https://us04web.zoom.us/j/8286292465?pwd=zP2qydt0S1g7QBaUVqTtADexSZP4Bq.1" }
+    ];
+
+    function update() {
+        const now = new Date();
+        const diffWeeks = Math.floor((now - START_DATE) / (1000 * 60 * 60 * 24 * 7));
+        const weekNum = (diffWeeks % 2 === 0) ? 1 : 2;
+        const days = ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"];
+        const todayName = days[now.getDay()];
+
+        document.getElementById('week-display').innerText = `Тиждень: ${weekNum}`;
+        document.getElementById('today-info').innerText = now.toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'long' });
+
+        const grid = document.getElementById('schedule-grid');
+        grid.innerHTML = '';
+        const currentData = weekNum === 1 ? schedule.week1 : schedule.week2;
+
+        Object.entries(currentData).forEach(([day, lessons]) => {
+            const isToday = day === todayName;
+            let html = `<div class="day-card ${isToday ? 'today' : ''}"><div class="day-title">${day}</div>`;
+            lessons.forEach((name, i) => {
+                if (name === "-") return;
+                const slot = timeSlots[i];
+                const isNow = isToday && checkTime(slot.s, slot.e);
+                html += `<div class="lesson ${isNow ? 'active' : ''}">
+                    <span class="time">${slot.s} - ${slot.e}</span>
+                    <strong>${name}</strong>
+                </div>`;
+            });
+            grid.innerHTML += html + `</div>`;
+        });
+
+        const list = document.getElementById('links-list');
+        list.innerHTML = '';
+        linksData.forEach(item => {
+            list.innerHTML += `<div class="link-item">
+                <span class="link-label">${item.name}</span>
+                <a class="link-url" href="${item.url}" target="_blank">${item.url}</a>
+            </div>`;
+        });
+    }
+
+    function checkTime(s, e) {
+        const now = new Date();
+        const cur = now.getHours() * 60 + now.getMinutes();
+        const [h1, m1] = s.split(':').map(Number);
+        const [h2, m2] = e.split(':').map(Number);
+        return cur >= (h1*60+m1) && cur <= (h2*60+m2);
+    }
+
+    update();
+    setInterval(update, 60000);
+</script>
+</body>
+</html>
